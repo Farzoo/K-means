@@ -66,12 +66,15 @@ class Cluster(
   /**
    * Calcule le centroid en fonction des Exemples affectés au cluster
    * La valeur des attributs du centroid est la moyenne de chaque attribut de tous les Exemples affectés au cluster
+   * @return true si le centre n'a pas changé
    */
-  def computeCentroid() : Unit =
+  def computeCentroid() : Boolean =
+    var oldCentroid : Individu = this.centroid
     this.centroid = new Individu(this.nbAttributes)
     (0 until this.nbAttributes).foreach(
       i => this.centroid.set(i, this.contents.map(e => e.get(i)).sum / this.contents.length)
     )
+    return Math.round(this.centroid.distance(oldCentroid)) == 0l
 
   /**
    * Calcul la classe majoritaire parmi les exemples du cluster
@@ -91,7 +94,7 @@ class Cluster(
                                             ).groupBy(_._1==this.classCluster).map(
                                               (b, e) => (b, e.size)
                                             )
-    this.erreur = byIsClassNumber(false) / byIsClassNumber(false) + byIsClassNumber(false)
+    this.erreur = byIsClassNumber(false) / byIsClassNumber(true) + byIsClassNumber(false)
 
   /**
    * Calcul la distance moyenne entre les points du cluster
