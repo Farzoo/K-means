@@ -2,7 +2,8 @@ package kmeans
 
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
-// import breeze.plot._
+import breeze.plot
+import breeze.plot.Figure
 
 /**
  * Gère une matrice d'Exemples
@@ -40,6 +41,7 @@ class Data(fichierDonnees: String, fichierAttributs : String) :
 	 */
 	def nbAttributes        : Int    				       = this.nbAttributs
 
+	def getAttributesNames : Array[String] = this.attributesNames
 	/**
 	 *
 	 * @return le nombre d'Exemples (lignes) dans la matrice
@@ -79,7 +81,7 @@ class Data(fichierDonnees: String, fichierAttributs : String) :
 	/**
 	  * representation graphique des valeurs de tous les attributs
 	  */
-		/*
+		
 	def plotAttributesValues() : Unit =
 	{
 
@@ -96,7 +98,7 @@ class Data(fichierDonnees: String, fichierAttributs : String) :
 
 						// y contiendra les donneees de l'attribut reparties par classe
                         // y contiendra les indices des donnees
-            val y : Array[ArrayBuffer[Double]] = Array.ofDim(this.nbClasses)
+			val y : Array[ArrayBuffer[Double]] = Array.ofDim(this.nbClasses)
 			val x : Array[ArrayBuffer[Double]] = Array.ofDim(this.nbClasses)
 
 			for (c <- 0 until this.nbClasses)
@@ -111,25 +113,23 @@ class Data(fichierDonnees: String, fichierAttributs : String) :
 			{
 							// recupere la classe de la donnee i
 				val c = this.normalizedData(i).classNumber
-                x(c).append(i)
-                y(c).append(this.attributesValues(j)(i))
+				x(c).append(i)
+				y(c).append(this.attributesValues(j)(i))
 			}
 
 						// fait un plot de chaque classe avec une couleur differente
 			for (c <- 0 until this.nbClasses)
 			{
-				if (j == this.nbAttributs -1)
-                {
-                    p.legend = true
-                    p += plot(x(c), y(c), style = '+', colorcode = LearningData.colors(c),
-                        name = this.classesNames(c))
-                }
-                else
-                    p += plot(x(c), y(c), style = '+', colorcode = LearningData.colors(c))
+				if (j == this.nbAttributs -1) {
+					p.legend = true
+					p += plot.plot(x(c), y(c), style = '+', colorcode = Data.colors(c),
+							name = this.classesNames(c))
+				} else
+					p += plot.plot(x(c), y(c), style = '+', colorcode = Data.colors(c))
 			}
 		}
 	}
-*/
+
     /**
       * representation graphique des valeurs de tous les attributs
       */
@@ -415,6 +415,5 @@ class Data(fichierDonnees: String, fichierAttributs : String) :
 
 
 object Data :
-
-	private val colors = Array[String]("green", "red", "blue", "black",  "yellow")
-	private val styles = Array[Char]('+', '.')
+	val colors = Array[String]("green", "red", "blue", "black",  "yellow")
+	val styles = Array[Char]('+', '.')

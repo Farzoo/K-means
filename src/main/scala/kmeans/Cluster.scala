@@ -52,7 +52,8 @@ class Cluster(
     this._intraDistance = value
 
   def add(i : Int) : Unit =
-    this.contents.append(this.exemples(i))
+    if(!this.contents.contains(this.exemples(i))) then
+      this.contents.append(this.exemples(i))
 
   def empty() : Unit =
     this.contents.clear()
@@ -66,7 +67,7 @@ class Cluster(
   /**
    * Calcule le centroid en fonction des Exemples affectés au cluster
    * La valeur des attributs du centroid est la moyenne de chaque attribut de tous les Exemples affectés au cluster
-   * @return true si le centre n'a pas changé
+   * @return true si le centre a changé
    */
   def computeCentroid() : Boolean =
     var oldCentroid : Individu = this.centroid
@@ -74,7 +75,7 @@ class Cluster(
     (0 until this.nbAttributes).foreach(
       i => this.centroid.set(i, this.contents.map(e => e.get(i)).sum / this.contents.length)
     )
-    return Math.round(this.centroid.distance(oldCentroid)) == 0l
+    return oldCentroid == null || this.centroid.distance(oldCentroid) > 0.01
 
   /**
    * Calcul la classe majoritaire parmi les exemples du cluster
@@ -82,7 +83,7 @@ class Cluster(
   def computeClassCluster() : Unit =
     this.classCluster = this.contents.groupBy(_.classNumber).map(
                         (classNumber, exemples) => (classNumber, exemples.length)
-                      ).maxBy(_._2)._2
+                      ).maxBy(_._2)._1
 
   /**
    * Calcul le proportion d'exemples du cluster qui ne correspondent pas à sa classe
@@ -94,24 +95,29 @@ class Cluster(
                                             ).groupBy(_._1==this.classCluster).map(
                                               (b, e) => (b, e.size)
                                             )
-    this.erreur = byIsClassNumber(false) / byIsClassNumber(true) + byIsClassNumber(false)
+    var nbOk : Int = if(byIsClassNumber.contains(true)) byIsClassNumber(true) else 0
+    var nbKO : Int = if(byIsClassNumber.contains(false)) byIsClassNumber(false) else 0
+    this.erreur = nbKO / (nbOk + nbKO)
 
   /**
    * Calcul la distance moyenne entre les points du cluster
    * @return la distance moyenne entre les points du cluster
    */
   def computeIntraDistance() : Double =
-    val distanceValues : Array[Double] = new Array[Double](this.contents.length)
+    if(this.contents.isEmpty) return 0d
+
+    val distanceValues : Array[Double] = new Array[Double](this.contents.length-1)
     this.contents.indices.reduce(
       (i, j) => {
-        Math.pow(this.get(i).distance(this.get(j)), 2)
-        return j
+        distanceValues.update(i, Math.pow(this.get(i).distance(this.get(j)), 2))
+        j
       }
     )
-    this.intraDistance = distanceValues.sum / this.contents.length
+
+    this.intraDistance = distanceValues.sum / distanceValues.length
     return this.intraDistance
 
-  override def toString : String = return ""
+  override def toString : String = return f"${this.name} -> centroid=${this.centroid} | contents=${this.contents}"
 
 
 
