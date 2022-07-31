@@ -1,9 +1,11 @@
 package kmeans
 
 import scala.collection.mutable.ArrayBuffer
-import scala.io.Source
+import scala.io.{BufferedSource, Source}
 import breeze.plot
 import breeze.plot.Figure
+
+import java.io.FileNotFoundException
 
 /**
  * Gère une matrice d'Exemples
@@ -227,12 +229,17 @@ class Data(fichierDonnees: String, fichierAttributs : String) :
 	private def readAttributesNames: Unit =
 		this.attributesNames = new Array[String](this.nbAttributs)
 
-		val bufferedSource = Source.fromFile(this.fichierAttributs)
+		var bufferedSource: BufferedSource = null
+		try {
+			bufferedSource = Source.fromFile("./" + this.fichierAttributs)
+		} catch {
+			case e: FileNotFoundException => bufferedSource = Source.fromResource(this.fichierAttributs)
+		}
 
 		var i = 0
 
 		for (ligne <- bufferedSource.getLines)
-			println(ligne)
+			//			println(ligne)
 			this.attributesNames(i) = ligne
 
 			i += 1
@@ -243,7 +250,12 @@ class Data(fichierDonnees: String, fichierAttributs : String) :
 		* lit les donnees depuis le fichier nomFichier
 		*/
 	private def readData() =
-		val bufferedSource = Source.fromFile(this.fichierDonnees)
+		var bufferedSource : BufferedSource = null
+		try {
+			bufferedSource = Source.fromFile("./" + this.fichierDonnees)
+		} catch {
+			case e : FileNotFoundException => bufferedSource = Source.fromResource(this.fichierDonnees)
+		}
 
 		var i = 0
 

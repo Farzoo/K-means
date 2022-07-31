@@ -80,15 +80,16 @@ class Cluster(
   /**
    * Calcul la classe majoritaire parmi les exemples du cluster
    */
-  def computeClassCluster() : Unit =
+  def computeClassCluster() : Int =
     this.classCluster = this.contents.groupBy(_.classNumber).map(
                         (classNumber, exemples) => (classNumber, exemples.length)
                       ).maxBy(_._2)._1
+    return this.classCluster
 
   /**
    * Calcul le proportion d'exemples du cluster qui ne correspondent pas à sa classe
    */
-  def computeClusterError() : Unit =
+  def computeClusterError() : Double =
     // byIsClassNumber = le nombre d'Exemples qui ont pour classe this.classCluster et le nombre d'Exemples qui n'ont pas pour classe this.classCluster
     val byIsClassNumber : Map[Boolean, Int] = this.contents.groupBy(_.classNumber).map(
                                               (classNumber, exemples) => (classNumber, exemples.length)
@@ -98,23 +99,19 @@ class Cluster(
     var nbOk : Int = if(byIsClassNumber.contains(true)) byIsClassNumber(true) else 0
     var nbKO : Int = if(byIsClassNumber.contains(false)) byIsClassNumber(false) else 0
     this.erreur = nbKO / (nbOk + nbKO)
+    return this.erreur
 
   /**
    * Calcul la distance moyenne entre les points du cluster
    * @return la distance moyenne entre les points du cluster
    */
   def computeIntraDistance() : Double =
-    if(this.contents.isEmpty) return 0d
+    if(this.contents.length < 2) return 0d
 
-    val distanceValues : Array[Double] = new Array[Double](this.contents.length-1)
-    this.contents.indices.reduce(
-      (i, j) => {
-        distanceValues.update(i, Math.pow(this.get(i).distance(this.get(j)), 2))
-        j
-      }
-    )
+    val distanceValues : ArrayBuffer[Double] = this.contents.map(e => Math.pow(this.centroid.distance(e), 2))
 
-    this.intraDistance = distanceValues.sum / distanceValues.length
+    this.intraDistance = Math.pow(distanceValues.sum / distanceValues.length, 1/2)
+
     return this.intraDistance
 
   override def toString : String = return f"${this.name} -> centroid=${this.centroid} | contents=${this.contents}"

@@ -33,26 +33,42 @@ class Kmeans(fichierDonnees: String, fichierAttributs : String) :
                     c => (c, c.centroid.distance(e))
                   ).minBy(_._2)._1.add(i)
       )
-      this.clusters.filterInPlace(_.size()>0)
       this.clusters.foreach(c => {
         hasChanged = hasChanged || c.computeCentroid()
+      })
+      this.clusters.filterInPlace(_.size()>0)
+
+    this.clusters.foreach(c => {
         c.computeClassCluster()
         c.computeIntraDistance()
         c.computeClusterError()
-      })
+      }
+    )
 
-    return new KmeansModel(k, this.data, this.clusters.toArray, this.computeInterDistance(), this.computeQuality())
+
+    return new KmeansModel(k, this.data, this.clusters.toArray, this.computeInterDistance(), this.computeQuality(), this.computeClusteringError())
 
   private[this] def computeInterDistance() : Double =
+    if(this.clusters.length < 2) return 0.0d
     var sommeDistance : Double = 0
     for(i <- (0 until this.clusters.length-1)) {
       for(j <- (i+1 until this.clusters.length)) {
-        sommeDistance += this.clusters(i).centroid.distance(this.clusters(j).centroid)
+        sommeDistance += Math.pow(this.clusters(i).centroid.distance(this.clusters(j).centroid), 2)
       }
     }
-
     return (sommeDistance * 2) / (this.clusters.length * (this.clusters.length -1))
 
+  /**
+   *
+   * @return
+   */
   private[this] def computeQuality() : Double =
-    return this.computeInterDistance() / (this.clusters.map(c => c.computeIntraDistance()).sum / this.clusters.length)
+    //println(this.clusters.map(c => (c, c.computeIntraDistance())).filter(_._2.isNaN))
+    var dbQuality : Double = this.clusters.map(ci => this.clusters.map(cj =>
+                                if(cj != ci) (ci.intraDistance + cj.intraDistance) / ci.centroid.distance(cj.centroid) else 0.0d
+                              ).max).sum / this.clusters.length
+    return if (dbQuality == 0.0d) 0.0d else 1 / dbQuality
 
+
+  private[this] def computeClusteringError() : Double =
+    return this.clusters.map(c => c.computeClusterError()).sum / this.clusters.length
